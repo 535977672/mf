@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div style="margin: 10px 200px; padding: 20px;">
+            <div style="margin-top: 100px;">
+                <div>当面付  手机扫商家二维码支付</div>
+                <form action="qrpay.php" method="post" name="form1">
+                    <div style="margin-top: 20px;"><div style="width:200px;display:inline-block;">支付金额：</div><div style="width:100px;display:inline-block;"><input type="text" name="totalAmount"></div></div>
+                    <div style="margin-top: 20px;"><button type="submit">确认</button></div>
+                </form>
+            </div>
+            <div style="margin-top: 100px;">
+                <div>当面付  手机扫商家二维码支付 订单查询</div>
+                <form action="barpay_query.php" method="post" name="form2">
+                    <div style="margin-top: 20px;"><div style="width:200px;display:inline-block;">订单号：</div><div style="width:100px;display:inline-block;"><input type="text" name="code"></div></div>
+                    <div style="margin-top: 20px;"><button type="submit">确认</button></div>
+                </form>
+            </div>
+            <div style="margin-top: 100px;">
+                <div>当面付  退款(沙箱占不支持)</div>
+                <form action="refund.php" method="post" name="form3">
+                    <div style="margin-top: 20px;"><div style="width:200px;display:inline-block;">订单号：</div><div style="width:100px;display:inline-block;"><input type="text" name="out_trade_no"></div></div>
+                    <div style="margin-top: 20px;"><div style="width:200px;display:inline-block;">金额：</div><div style="width:100px;display:inline-block;"><input type="text" name="refund_amount"></div></div>
+                    <div style="margin-top: 20px;"><button type="submit">确认</button></div>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

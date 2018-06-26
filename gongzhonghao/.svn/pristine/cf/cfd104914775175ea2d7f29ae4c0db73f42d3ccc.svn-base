@@ -1,0 +1,443 @@
+<?php
+/**
+ * 1、数据收发原理及消息数据格式
+ * 在开发者首次提交验证申请时，微信服务器将发送GET请求到填写的URL上，
+ * 并且带上四个参数（signature、timestamp、nonce、echostr），
+ * 开发者通过对签名（即signature）的效验，来判断此条消息的真实性。
+
+ * 此后，每次开发者接收用户消息的时候，微信也都会带上前面三个参数（signature、timestamp、nonce）
+ * 访问开发者设置的URL，开发者依然通过对签名的效验判断此条消息的真实性。效验方式与首次提交验证申请一致。
+ * 
+ * 开发者通过检验signature对请求进行校验（下面有校验方式）。若确认此次GET请求来自微信服务器，
+ * 请原样返回echostr参数内容，则接入生效，成为开发者成功，否则接入失败。
+ * 
+ * signature	微信加密签名，signature结合了开发者填写的token参数和请求中的timestamp参数、nonce参数。
+ * timestamp	时间戳
+ * nonce	随机数
+ * echostr	随机字符串
+ * 
+ * 加密/校验流程如下：
+ * 1. 将token、timestamp、nonce三个参数进行字典序排序
+ * 2. 将三个参数字符串拼接成一个字符串进行sha1加密
+ * 3. 开发者获得加密后的字符串可与signature对比，标识该请求来源于微信
+ * 
+ * 2、各种收发消息的XML数据包分析
+ * 1. 文本（包括表情）
+ * 2. 图片
+ * 3. 语音
+ * 4. 视频
+ * 5. 位置
+ * 6. 链接
+ * 
+ * 3、事件消息类型
+ * 目前用户在关注和取消关注，以及点击菜单的时候会自动向公众平台发送事件推送消息：
+ * 1. 关注事件subscribe
+ * 2. 取消关注事件unsubscribe
+ * 3. 菜单点击事件CLICK
+ * 
+ */
+
+header('Content-type:text');
+define("TOKEN", "weixin");
+define("MAIN_URL", "http://535977672.applinzi.com");
+
+
+$wechatObj = new wechatCallbackapiTest();
+//if (!isset($_GET['echostr'])) {
+	$wechatObj->responseMsg();
+//}else{
+//    $wechatObj->valid();//微信公众平台校验URL是否正确接入，验证完即可删除文件
+//}
+
+class wechatCallbackapiTest
+{
+/*    
+    public function valid()
+    {
+        $echoStr = $_GET["echostr"];
+        if($this->checkSignature()){
+            echo $echoStr;
+            exit;
+        }
+    }
+
+    private function checkSignature()
+    {
+        $signature = $_GET["signature"];
+        $timestamp = $_GET["timestamp"];
+        $nonce = $_GET["nonce"];
+        $token = TOKEN;
+        $tmpArr = array($token, $timestamp, $nonce);
+        sort($tmpArr);
+        $tmpStr = implode($tmpArr);
+        $tmpStr = sha1($tmpStr);
+
+        if($tmpStr == $signature){
+            return true;
+        }else{
+            return false;
+        }
+    }
+ */
+
+    public function responseMsg()
+    {
+        //当用户向微信公众账号发送消息时，微信服务器会POST给开发者一些xml数据
+        $postStr = $GLOBALS["HTTP_RAW_POST_DATA"];// //获取POST数据
+        if (!empty($postStr)){
+            $this->logger("R ".$postStr);
+            $postObj = simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA);
+            //simplexml_load_string() 函数把 XML 字符串载入对象中。
+            //返回类 SimpleXMLElement 的一个对象，该对象的属性包含 XML 文档中的数据。如果失败，则返回 false。
+            $RX_TYPE = trim($postObj->MsgType);
+
+            switch ($RX_TYPE)
+            {
+                case "event":
+                    $result = $this->receiveEvent($postObj);
+                    break;
+                //文本
+                case "text":
+                    if(intval($postObj->Content) == 1){
+                        $content = array(
+                            array('Title' => '马云入股联通，逼迫三大运营商加快降低漫游费，解决不合理收费还要多久？', 'Description' => '现在社会，几乎人人都有手机，而电话卡是人们必不可少的东西，那么我们都遇到过这种情况，那就是国际漫游，收费特别贵。而从上年就开始说要降低的漫游费，到今年还没有动静。', 'PicUrl' => MAIN_URL.'/assets/img/1232.JPEG', 'Url' => 'http://baijiahao.baidu.com/s?id=1573951284440765'),
+                            array('Title' => '以苹果为首的品牌正在掀起二手手机“第二春”？', 'Description' => '每年几十场的手机新机发布会总是格外抢眼，各种品牌也总喜欢在大促后炫耀自己的出货量，但', 'PicUrl' => MAIN_URL.'/assets/img/1234.png', 'Url' => 'http://www.sohu.com/a/159989496_115503#comment_area'),
+                            array('Title' => 'LG Display追加70亿美元投资提高OLED产能，欲挑战三星', 'Description' => '7月26日消息，据TechCrunch报道，LG Display今天宣布，将投资7.8万亿韩元（约合70亿美元）以提高其OLED屏幕的生产能力。', 'PicUrl' => MAIN_URL.'/assets/img/1235.JPEG', 'Url' => 'http://baijiahao.baidu.com/s?id=1573958744437970')
+                        );
+                        $result = $this->transmitNews($postObj, $content);
+                    }else if(intval($postObj->Content) == 2){
+                        $content = array(
+                            array('Title' => '马云入股联通，逼迫三大运营商加快降低漫游费，解决不合理收费还要多久？', 'Description' => '现在社会，几乎人人都有手机，而电话卡是人们必不可少的东西，那么我们都遇到过这种情况，那就是国际漫游，收费特别贵。而从上年就开始说要降低的漫游费，到今年还没有动静。', 'PicUrl' => MAIN_URL.'/assets/img/1232.JPEG', 'Url' => 'http://baijiahao.baidu.com/s?id=1573951284440765'),
+                        );
+                        $result = $this->transmitNews($postObj, $content);
+                    }else{
+                        $result = $this->receiveText($postObj);
+                    }
+                    break;
+                //图片
+                case "image":
+                    $result = $this->receiveImage($postObj);
+                    break;
+                //语音
+                case "voice":
+                    $result = $this->receiveVoice($postObj);
+                    break;
+                //视频
+                case "video":
+                case "shortvideo":
+                    $result = $this->receiveVideo($postObj);
+                    break;
+                //语音
+                case "location":
+                    $result = $this->receiveLocation($postObj);
+                    break;
+                //语音
+                case "link":
+                    $result = $this->receiveLink($postObj);
+                    break;
+            }
+            $this->logger("T ".$result);
+            echo $result;
+        }else {
+            echo "";
+            exit;
+        }
+    }
+    
+    //事件
+    private function receiveEvent($object)
+    {
+        $content = "";
+        switch ($object->Event)
+        {
+            //subscribe(订阅/关注)、unsubscribe(取消订阅)
+            case "subscribe":
+                $content = "欢迎关注马飞工作室！";
+                $result = $this->transmitText($object, $content);
+                break;
+            case "unsubscribe":
+                $content = "取消关注";//后台维护
+                $result = $this->transmitText($object, $content);
+                break;
+            //扫描带参数二维码事件
+            //上报地理位置事件
+            //自定义菜单事件
+            case "CLICK":
+                $result = $this->receiveClick($object);
+                break;
+            case "VIEW":
+                $result = $this->receiveView($object);
+                break;
+        }
+        
+        return $result;
+    }
+
+    /**
+     * 自定义菜单事件
+     * EventKey	事件KEY值，与自定义菜单接口中KEY值对应
+     */
+    private function receiveClick($object) {
+        $eventKey = trim($object->EventKey);
+        switch ($eventKey)
+        {
+            case "click_caoliushenghuo":
+                $content = "潮流生活！";
+                break;
+            case "click_cq":
+                $content = "回复\n1 多图\n2 单图";
+                break;
+        }
+        
+        if(is_array($content)){
+
+        }else{
+            $result = $this->transmitText($object, $content);
+        }
+
+        return $result;
+    }    
+    
+    /**
+     * EventKey	事件KEY值，设置的跳转URL
+     */
+    private function receiveView($object) {
+        $eventKey = trim($object->EventKey);
+        switch ($eventKey)
+        {
+            case "https://www.baidu.com/":
+                $content = "https://www.baidu.com/";
+                break;
+        }
+        
+        if(is_array($content)){
+
+        }else{
+            $result = $this->transmitText($object, $content);
+        }
+
+        return $result;
+    }
+    
+    /**
+     * 接收文本消息
+     * ToUserName	开发者微信号
+     * FromUserName	发送方帐号（一个OpenID）
+     * CreateTime	消息创建时间 （整型）
+     * MsgType	text
+     * Content	文本消息内容
+     * MsgId	消息id，64位整型
+     */
+    private function receiveText($object)
+    {
+        $content = trim($object->Content);
+        $content = "$content\n技术支持 马飞工作室！";
+        
+        if(is_array($content)){
+
+        }else{
+            $result = $this->transmitText($object, $content);
+        }
+
+        return $result;
+    }
+
+    /**
+     * 接收图像消息
+     * ToUserName	开发者微信号
+     * FromUserName	发送方帐号（一个OpenID）
+     * CreateTime	消息创建时间 （整型）
+     * MsgType	image
+     * PicUrl	图片链接（由系统生成）
+     * MediaId	图片消息媒体id，可以调用多媒体文件下载接口拉取数据。
+     * MsgId	消息id，64位整型
+     */
+    private function receiveImage($object)
+    {
+        $picUrl = trim($object->PicUrl);
+        $content = array(
+            array('Title' => '马云入股联通，逼迫三大运营商加快降低漫游费，解决不合理收费还要多久？', 'Description' => '现在社会，几乎人人都有手机，而电话卡是人们必不可少的东西，那么我们都遇到过这种情况，那就是国际漫游，收费特别贵。而从上年就开始说要降低的漫游费，到今年还没有动静。', 'PicUrl' => MAIN_URL.'/assets/img/1232.JPEG', 'Url' => 'http://baijiahao.baidu.com/s?id=1573951284440765'),
+            array('Title' => '以苹果为首的品牌正在掀起二手手机“第二春”？', 'Description' => '每年几十场的手机新机发布会总是格外抢眼，各种品牌也总喜欢在大促后炫耀自己的出货量，但', 'PicUrl' => MAIN_URL.'/assets/img/1234.png', 'Url' => 'http://www.sohu.com/a/159989496_115503#comment_area'),
+            array('Title' => 'LG Display追加70亿美元投资提高OLED产能，欲挑战三星', 'Description' => '7月26日消息，据TechCrunch报道，LG Display今天宣布，将投资7.8万亿韩元（约合70亿美元）以提高其OLED屏幕的生产能力。', 'PicUrl' => MAIN_URL.'/assets/img/1235.JPEG', 'Url' => 'http://baijiahao.baidu.com/s?id=1573958744437970')
+        );
+        
+        if(is_array($content)){
+            $result = $this->transmitNews($object, $content);
+        }else{
+            $result = $this->transmitText($object, $content);
+        }
+
+        return $result;
+    }
+
+    /**
+     * 接收语音消息
+     * MediaId	语音消息媒体id，可以调用多媒体文件下载接口拉取数据。
+     * Format	语音格式，如amr，speex等
+     * 
+     * 请注意，开通语音识别后，用户每次发送语音给公众号时，微信会在推送的语音消息XML数据包中，增加一个Recongnition字段
+     * （注：由于客户端缓存，开发者开启或者关闭语音识别功能，对新关注者立刻生效，对已关注用户需要24小时生效。开发者可以重新关注此帐号进行测试）
+     * Recognition	语音识别结果，UTF8编码
+     */
+    private function receiveVoice($object)
+    {
+        $format = trim($object->Format);
+        $recognition = trim($object->Recognition);
+        $content = "\n你发送了一条语音\n格式$format\n语音识别结果，编码$recognition";
+        
+        if(is_array($content)){
+
+        }else{
+            $result = $this->transmitText($object, $content);
+        }
+
+        return $result;
+    }
+    
+    /**
+     * 接收视频  视频为video 小视频为shortvideo
+     * MediaId	语音消息媒体id，可以调用多媒体文件下载接口拉取数据。
+     * ThumbMediaId	视频消息缩略图的媒体id，可以调用多媒体文件下载接口拉取数据
+     */
+    private function receiveVideo($object)
+    {
+        $thumbMediaId = trim($object->ThumbMediaId);
+        $recognition = trim($object->Recognition);
+        $content = "\n你发送了一条视频\n视频消息缩略图的媒体id $thumbMediaId";
+        
+        if(is_array($content)){
+
+        }else{
+            $result = $this->transmitText($object, $content);
+        }
+
+        return $result;
+    }    
+ 
+    /**
+     * 接收位置消息
+     * MsgType	location
+     * Location_X	地理位置维度
+     * Location_Y	地理位置经度
+     * Scale	地图缩放大小
+     * Label	地理位置信息
+     */
+    private function receiveLocation($object)
+    {
+        $location_X = trim($object->Location_X);
+        $location_Y = trim($object->Location_Y);
+        $scale = trim($object->Scale);
+        $label = trim($object->Label);
+        $content = "\n你发送位置消息\n维度:$location_X\n经度:$location_Y\n地图缩放大小:$scale\n地理位置信息:$label";
+        
+        if(is_array($content)){
+
+        }else{
+            $result = $this->transmitText($object, $content);
+        }
+
+        return $result;
+    }    
+ 
+    /**
+     * 接收链接消息
+     * Title	消息标题
+     * Description	消息描述
+     * Url	消息链接
+     */
+    private function receiveLink($object)
+    {
+        $title = trim($object->Title);
+        $description = trim($object->Description);
+        $url = trim($object->Url); 
+        $content = "\n你发送链接消息\n标题:$title\n描述:$description\n链接:$url";
+        
+        if(is_array($content)){
+
+        }else{
+            $result = $this->transmitText($object, $content);
+        }
+
+        return $result;
+    }    
+ 
+    /**
+     * 1、回复文本消息
+     * Content 回复的消息内容（换行：在content中能够换行，微信客户端就支持换行显示）
+     */
+    private function transmitText($object, $content) {
+        $textTpl = "<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime>%s</CreateTime>
+                        <MsgType><![CDATA[text]]></MsgType>
+                        <Content><![CDATA[%s]]></Content>
+                    </xml>";
+        $result = sprintf($textTpl, $object->FromUserName, $object->ToUserName, time(), $content);
+        return $result;
+    }    
+    
+    /**
+     * 2、回复图文
+     * ToUserName	是	接收方帐号（收到的OpenID）
+     * FromUserName	是	开发者微信号
+     * CreateTime	是	消息创建时间 （整型）
+     * MsgType          是	news
+     * ArticleCount	是	图文消息个数，限制为8条以内
+     * Articles         是	多条图文消息信息，默认第一个item为大图,注意，如果图文数超过8，则将会无响应
+     * Title            是	图文消息标题
+     * Description	是	图文消息描述 单条时显示
+     * PicUrl           是	图片链接，支持JPG、PNG格式，较好的效果为大图360*200，小图200*200
+     * Url              是	点击图文消息跳转链接
+     */
+    private function transmitNews($object, $arr_item)
+    {
+        if(!is_array($arr_item))
+            return;
+
+        $itemTpl = "<item>
+                        <Title><![CDATA[%s]]></Title>
+                        <Description><![CDATA[%s]]></Description>
+                        <PicUrl><![CDATA[%s]]></PicUrl>
+                        <Url><![CDATA[%s]]></Url>
+                    </item>";
+        $item_str = "";
+        foreach ($arr_item as $item){
+            $item_str .= sprintf($itemTpl, $item['Title'], $item['Description'], $item['PicUrl'], $item['Url']);
+        }
+
+        $newsTpl = "<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime>%s</CreateTime>
+                        <MsgType><![CDATA[news]]></MsgType>
+                        <Content><![CDATA[]]></Content>
+                        <ArticleCount>%s</ArticleCount>
+                        <Articles>$item_str</Articles>
+                    </xml>";
+
+        $result = sprintf($newsTpl, $object->FromUserName, $object->ToUserName, time(), count($arr_item));
+        return $result;
+    }
+    
+    /**
+     * 日志
+     * @param type $log_content
+     */
+    private function logger($log_content)
+    {
+        if(isset($_SERVER['HTTP_APPNAME'])){   //SAE
+            sae_set_display_errors(false);
+            sae_debug($log_content);
+            sae_set_display_errors(true);
+        }else if($_SERVER['REMOTE_ADDR'] != "127.0.0.1"){ //LOCAL
+            $max_size = 10000;
+            $log_filename = "log.xml";
+            if(file_exists($log_filename) and (abs(filesize($log_filename)) > $max_size)){unlink($log_filename);}//函数删除文件
+            file_put_contents($log_filename, date('H:i:s')." ".$log_content."\r\n", FILE_APPEND);
+        }
+    }
+}
+
+
+?>

@@ -1,0 +1,105 @@
+<?php
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ * 图文消息留言管理
+ */
+include_once '../comm/Http.class';
+class News {
+    private $appid = "";
+    private $appsecret = "";
+    private $access_token = "";
+    private $lasttime = 0;
+
+    //构造函数，获取Access Token
+    public function __construct($appid = NULL, $appsecret = NULL) {
+        if($appid){
+            $this->appid = $appid;
+        }
+        if($appsecret){
+            $this->appsecret = $appsecret;
+        }
+
+        $curtime = time();
+        //目前Access_token的有效期通过返回的expire_in来传达，目前是7200秒之内的值。GET方式
+        if ($curtime > ($this->lasttime + 7200)){
+            $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".$this->appid."&secret=".$this->appsecret;//{"access_token":"ACCESS_TOKEN","expires_in":7200}
+            $res = Http::curl_request($url, '', false);
+            $result = json_decode($res, true);
+            if($result["errcode"]) {
+                echo $result["errmsg"];
+                return ;
+            }
+            
+            $this->access_token = $result["access_token"];
+            $this->lasttime = $curtime;
+        }
+    }  
+    
+    /**
+     * 1.1 新增永久素材
+     * title                    是	string	标题
+     * thumb_media_id           是	string	图文消息的封面图片素材id（必须是永久 media_ID）
+     * authod                   是  string	作者
+     * digest                   是	string	图文消息的摘要，仅有单图文消息才有摘要，多图文此处为空
+     * show_cover_pic           是	string	是否显示封面，0为false，即不显示，1为true，即显示
+     * content                  是	string	图文消息的具体内容，支持HTML标签，必须少于2万字符，小于1M，且此处会去除JS
+     * content_source_url       是	string	图文消息的原文地址，即点击“阅读原文”后的URL
+     * need_open_comment（新增字段）	否	Uint32	是否打开评论，0不打开，1打开
+     * only_fans_can_comment(新增字段）	否	Uint32	是否粉丝才可评论，0所有人可评论，1粉丝才可评论
+     */
+    public function addNews(){
+        $url = "https://api.weixin.qq.com/cgi-bin/material/add_news?access_token=".$this->access_token;//{“media_id” : MEDIA_ID， errcode” : 88000，“errmsg” : “without comment privilege”   //没有留言权限}
+        return ;  
+    }
+    
+    /**
+     * 图片永久素材上传
+     * 通过POST表单来调用接口，表单id为media，包含需要上传的素材内容，有filename、filelength、content-type等信息。
+     * 请注意：图片素材将进入公众平台官网素材管理模块中的默认分组。
+     * 
+     * access_token	是	调用接口凭证
+     * type	是	媒体文件类型，分别有图片（image）、语音（voice）、视频（video）和缩略图（thumb）
+     * media	是	form-data中媒体文件标识，有filename、filelength、content-type等信息
+     * 
+     * 返回参数说明
+     * media_id	新增的永久素材的media_id
+     * url	新增的图片素材的图片URL（仅新增图片素材时会返回该字段）
+     */
+    public function addMaterial($media){
+        if (empty($media)) return false;
+        var_dump($media);
+        $url = "https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=".$this->access_token."&type=image";
+        $real_path = $media['filename']; 
+        //传统上，PHP的cURL支持通过在数组数据中，使用“@+文件全路径”的语法附加文件，供cURL读取上传。
+        //PHP从5.5开始引入了新的CURLFile类用来指向文件。CURLFile类也可以详细定义MIME类型、文件名等可能出现在multipart/form-data数据中的附加信息。
+        $data= array("media"=>new CURLFile($real_path),'form-data'=>$media); 
+        
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        if(stripos($url,"https://")!==FALSE){ 
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);// https请求 不验证证书和hosts
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+            curl_setopt($curl, CURLOPT_SSLVERSION, 1);
+        }
+        curl_setopt($curl, CURLOPT_HEADER, 0); // 不要http header 加快效率
+        curl_setopt($curl, CURLOPT_POST, 1);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);// 要求结果为字符串且输出到屏幕上
+        curl_setopt($curl, CURLOPT_TIMEOUT, 20);
+        $output = curl_exec($curl);
+        if(curl_errno($curl) == 0){
+            
+            curl_close($curl);
+            return $output;
+        }
+        curl_close($curl);
+        return false;
+    }
+    
+}

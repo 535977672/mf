@@ -1,0 +1,79 @@
+<?php
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ * Description of Menu
+ *
+ * @author Administrator
+ */
+class Menu {
+
+    private $appid = "";
+    private $appsecret = "";
+    private $access_token = "";
+    private $lasttime = 0;
+
+    //构造函数，获取Access Token
+    public function __construct($appid = NULL, $appsecret = NULL)
+    {
+        if($appid){
+            $this->appid = $appid;
+        }
+        if($appsecret){
+            $this->appsecret = $appsecret;
+        }
+
+        $curtime = time();
+        //目前Access_token的有效期通过返回的expire_in来传达，目前是7200秒之内的值。
+        if ($curtime > ($this->lasttime + 7200)){
+            $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".$this->appid."&secret=".$this->appsecret;//{"access_token":"ACCESS_TOKEN","expires_in":7200}
+            $res = $this->https_request($url, '', false);
+            $result = json_decode($res, true);
+            if($result["errcode"]) {
+                echo $result["errmsg"];
+                return ;
+            }
+            
+            $this->access_token = $result["access_token"];
+            $this->lasttime = $curtime;
+            echo $this->access_token."".$this->lasttime;
+        }
+    }
+
+ 
+
+    //创建菜单
+    public function create_menu($data)
+    {
+        if(empty($data)) return false;
+        //http请求方式：POST（请使用https协议） https://api.weixin.qq.com/cgi-bin/menu/create?access_token=ACCESS_TOKEN
+        $url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=".$this->access_token;
+        $res = $this->https_request($url, $data);
+        return json_decode($res, true);
+    }
+
+
+    //https请求（支持GET和POST）
+    protected function https_request($url, $data = null, $post = true)
+    {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+        if (!empty($data) && $post){
+            curl_setopt($curl, CURLOPT_POST, 1);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+        }
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 1);
+        
+        $output = curl_exec($curl);
+        curl_close($curl);
+        return $output;
+    }
+}

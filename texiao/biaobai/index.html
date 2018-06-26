@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>想你了</title>
+	<style>
+		*{margin:0; padding:0;}
+		body{ background-color: #F9F7F7; }
+	</style>
+</head>
+<body>
+	<canvas id="drawHeart"></canvas>
+
+	<script>
+		var hearts = [];
+		var canvas = document.getElementById('drawHeart');
+		var wW = window.innerWidth;//innerwidth	返回窗口的文档显示区的宽度。
+		var wH = window.innerHeight;
+		// 创建画布
+		var ctx = canvas.getContext('2d');
+		// 创建图片对象
+        var imgnum = 2,img = [],num = 30;
+        //文字显示
+        var text = ['想你','爱你','喜欢你','I LOVE YOU', 'LIKE YOU', 'KISS', '(づ￣3￣)づ╭❤～'];
+        //随机文字颜色
+        var tcolor = ['#00f','#f00','#0f0', '#368', '#666', '#333', '#f50'];
+
+        getImg();
+		init();
+
+		window.addEventListener('resize', function(){
+			 wW = window.innerWidth;
+			 wH = window.innerHeight;
+		});
+		// 初始化画布大小
+		function init(){
+			canvas.width = wW;
+			canvas.height = wH;
+			for(var i = 0; i < num; i++){
+				hearts.push(new Heart(i%5));
+			}
+            //window.requestAnimationFrame() 方法告诉浏览器您希望执行动画，并请求浏览器调用指定的函数在下一次重绘之前更新动画。该方法将在重绘之前调用的回调作为参数。
+			requestAnimationFrame(render);//请求动画帧 requestAnimationFrame(callback)//callback为回调函数
+		}
+        
+        function getImg(){
+            for(var i = 0; i < imgnum; i++){
+                // 创建图片对象
+                var heartImage = new Image();
+                heartImage.src = 'img/heart'+i+'.svg';
+                img.push(heartImage);
+            }
+        }
+        
+		function getColor(){
+            return tcolor[parseInt(Math.random() * tcolor.length)];
+		}
+
+		function getText(){
+			return text[parseInt(Math.random() * text.length)];
+		}
+
+		function Heart(type){
+			this.type = type;
+			// 初始化生成范围
+			this.x = Math.random() * wW;//random()回介于 0（包含） ~ 1（不包含） 之间的一个随机数
+			this.y = Math.random() * wH;
+
+			this.opacity = Math.random() * .5 + .5;//0.5~1
+
+			// 偏移量
+			this.vel = {
+				x: (Math.random() - .5) * 5,//-2.5~2.5
+				y: (Math.random() - .5) * 5
+			};
+
+			this.initialW = wW * .5;
+			this.initialH = wH * .5;
+			// 缩放比例
+			this.targetScale = Math.random() * .15 + .02; // 最小0.02 0.02~0.35
+			this.scale = Math.random() * this.targetScale;//0.02~0.35
+
+			// 文字位置
+			this.fx = Math.random() * wW;
+			this.fy = Math.random() * wH;
+			this.fs = Math.random() * 10;
+			this.text = getText();
+
+			this.fvel = {
+				x: (Math.random() - .5) * 5,
+				y: (Math.random() - .5) * 5,
+				f: (Math.random() - .5) * 2
+			};
+		}
+
+		Heart.prototype.draw = function(heartImage){
+            //save方法用于临时保存画布坐标系统的状态
+            //restore方法可以用来恢复save之后设置的状态,
+            //调用restore之后，restore方法前调用的rotate/translate/scale方法全部就还原了，画布的坐标系统恢复到save方法之前，
+            //但是这里要注意的是，restore方法的调用只影响restore之后绘制的内容，对restore之前已经绘制到屏幕上的图形不会产生任何影响。
+			ctx.save();
+			ctx.globalAlpha = this.opacity;
+			ctx.drawImage(heartImage, this.x, this.y, this.width, this.height);
+			ctx.scale(this.scale + 1, this.scale + 1);
+  			if(!this.type){
+  				// 设置文字属性
+                ctx.fillStyle = getColor();
+	  			ctx.font = 'italic ' + this.fs + 'px sans-serif';
+	  			// 填充字符串
+	  			ctx.fillText(this.text, this.fx, this.fy);
+  			}
+			ctx.restore();
+		};
+		Heart.prototype.update = function(){
+			this.x += this.vel.x;
+			this.y += this.vel.y;
+
+			if(this.x - this.width > wW || this.x + this.width < 0){
+				// 重新初始化位置
+				this.scale = 0;
+				this.x = Math.random() * wW;
+				this.y = Math.random() * wH;
+			}
+			if(this.y - this.height > wH || this.y + this.height < 0){
+				// 重新初始化位置
+				this.scale = 0;
+				this.x = Math.random() * wW;
+				this.y = Math.random() * wH;
+			}
+
+			// 放大
+			this.scale += (this.targetScale - this.scale) * .1;
+			this.height = this.scale * this.initialH;
+			this.width = this.height * 1.4;
+
+			// -----文字-----
+			this.fx += this.fvel.x;
+			this.fy += this.fvel.y;
+			this.fs += this.fvel.f;
+
+			if(this.fs > 50){
+				this.fs = 2;
+			}
+
+			if(this.fx - this.fs > wW || this.fx + this.fs < 0){
+				// 重新初始化位置
+				this.fx = Math.random() * wW;
+				this.fy = Math.random() * wH;
+			}
+			if(this.fy - this.fs > wH || this.fy + this.fs < 0){
+				// 重新初始化位置
+				this.fx = Math.random() * wW;
+				this.fy = Math.random() * wH;
+			}
+		};
+
+		function render(){
+			ctx.clearRect(0, 0, wW, wH);
+			for(var i = 0; i < hearts.length; i++){
+				hearts[i].draw(img[i%imgnum]);
+				hearts[i].update();
+			}
+			requestAnimationFrame(render);
+		}
+	</script>
+</body>
+</html>

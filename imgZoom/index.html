@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head> 
+    <meta charset="utf-8"> 
+    <link rel="stylesheet" type="text/css" href="css/imgZoom.css" />
+</head>
+<body>
+    <div id="imgBox">
+        <div class="bigImg">
+            <img src="img/11.jpg" osrc="img/1.jpg" alt="" id="midimg" />
+            <div id="winSelector"></div>
+            <div id="bigView"><img alt="" src="" id="bigViewImg"/></div>
+        </div>
+        <div class="smallImgs">
+            <div id="imageMenu">
+                <ul>
+                    <li class="smallImg smallImgSelected"> <img src="img/11.jpg" osrc="img/11.jpg" alt=""/> </li>
+                    <li class="smallImg"> <img src="img/22.jpg" osrc="img/2.jpg" alt=""/> </li>
+                    <li class="smallImg"> <img src="img/33.jpg" osrc="img/3.jpg" alt=""/> </li>
+                    <li class="smallImg"> <img src="img/44.jpg" osrc="img/4.jpg" alt=""/> </li>
+                    <li class="smallImg"> <img src="img/55.jpg" osrc="img/5.jpg" alt=""/> </li>
+                    <li class="smallImg"> <img src="img/66.jpg" osrc="img/6.jpg" alt=""/> </li>
+                </ul>
+            </div>
+        </div>
+    </div> 
+<script type="text/javascript" src="js/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="js/imgZoom.js"></script>
+<script type="text/javascript">
+$(function(){
+    $("#imgBox").imgZoom({
+        'H':600,
+        'W':600,
+        'ratio':3
+    });
+});
+</script>
+</body>
+</html>

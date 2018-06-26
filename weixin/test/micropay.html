@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div style="margin: 10px 200px; padding: 20px;">
+            <div>
+                <div>微信支付-刷卡支付  扫码枪扫条码支付</div>
+                <form action="micropay.php" method="post" name="form1">
+                    <input type="hidden"  name="type" value="1">
+                    <div style="margin-top: 20px;"><div style="width:200px;display:inline-block;">支付金额：</div><div style="width:100px;display:inline-block;"><input type="text" name="totalAmount"></div></div>
+                    <div style="margin-top: 20px;"><div style="width:200px;display:inline-block;">支付码/授权码：</div><div style="width:100px;display:inline-block;"><input type="text" name="auth_code"></div></div>
+                    <div style="margin-top: 20px;"><button type="submit">确认</button></div>
+                </form>
+            </div>
+            <div style="margin-top: 100px;">
+                <div>微信支付-刷卡支付  订单查询</div>
+                <form action="micropay.php" method="post" name="form2">
+                    <input type="hidden"  name="type" value="2">
+                    <!-- 145529020220170629100608 -->
+                    <div style="margin-top: 20px;"><div style="width:200px;display:inline-block;">商户单号：</div><div style="width:100px;display:inline-block;"><input type="text" name="code"></div></div>
+                    <div style="margin-top: 20px;"><button type="submit">确认</button></div>
+                </form>
+            </div>
+            
+            <div style="margin-top: 100px;">
+                <div>微信支付-刷卡支付  退款</div>
+                <form action="micropay.php" method="post" name="form2">
+                    <input type="hidden"  name="type" value="3">
+                    <div style="margin-top: 20px;"><div style="width:200px;display:inline-block;">商户单号：</div><div style="width:100px;display:inline-block;"><input type="text" name="code"></div></div>
+                    <div style="margin-top: 20px;"><button type="submit">确认</button></div>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

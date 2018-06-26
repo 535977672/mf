@@ -1,0 +1,70 @@
+<?php
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ * Description of Menu
+ *
+ * @author Administrator
+ */
+include_once 'Http.class';
+class Menu {
+
+    private $appid = "";
+    private $appsecret = "";
+    private $access_token = "";
+    private $lasttime = 0;
+
+    //构造函数，获取Access Token
+    public function __construct($appid = NULL, $appsecret = NULL) {
+        if($appid){
+            $this->appid = $appid;
+        }
+        if($appsecret){
+            $this->appsecret = $appsecret;
+        }
+
+        $curtime = time();
+        //目前Access_token的有效期通过返回的expire_in来传达，目前是7200秒之内的值。GET方式
+        if ($curtime > ($this->lasttime + 7200)){
+            $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".$this->appid."&secret=".$this->appsecret;//{"access_token":"ACCESS_TOKEN","expires_in":7200}
+            $res = Http::curl_request($url, '', false);
+            $result = json_decode($res, true);
+            if($result["errcode"]) {
+                echo $result["errmsg"];
+                return ;
+            }
+            
+            $this->access_token = $result["access_token"];
+            $this->lasttime = $curtime;
+        }
+    }
+
+ 
+
+    /**
+     * 创建菜单
+     */
+    public function create_menu($data) {
+        if(empty($data)) return false;
+        //http请求方式：POST（请使用https协议） 占时是http通不过
+        //echo $this->access_token;
+        $url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=".$this->access_token;
+        $res = Http::curl_request($url, $data);
+        return json_decode($res, true);
+    }
+    
+    /**
+     * 获取菜单
+     */
+    public function get_menu() {
+        $url = "https://api.weixin.qq.com/cgi-bin/menu/get?access_token=".$this->access_token;
+        $res = Http::curl_request($url, '', false);
+        return json_decode($res, true);
+    }
+
+}

@@ -1,0 +1,115 @@
+<?php
+
+/* 
+ * 图文消息留言管理
+ */
+include_once 'News.class';
+define("MAIN_URL", "http://535977672.applinzi.com");
+$auth = array(
+    'appid' => 'wxdd42a6cf5050a453',
+    'appsecret' => 'af6a594dda07a6caeff9dc236c218b46'
+);
+$news = new News($auth['appid'], $auth['appsecret']);
+
+//图片永久素材上传
+if($_GET['type'] == 1){
+    $media = array(
+        'filename' => '/assets/img/1232.JPEG',
+        'content-type' => 'image/jpeg',
+        'filelength' => filesize('../assets/img/1232.JPEG')
+    );
+    $r = $news->addMaterial($media);
+    if(empty($r) || $r["errcode"] > 0){
+        echo "错误代码：".$r["errcode"]." ".$r["errmsg"];
+    }else{
+        var_dump($r);
+        //array(2) { ["media_id"]=> string(43) "w5M3zzjIh1Lm5t5uzW462h27cjE23s2vh7unmxR5g1A" ["url"]=> string(141) "http://mmbiz.qpic.cn/mmbiz_jpg/RvvoNibO8rPiaoLic6vjFCSIInsttiauBjB0QbUOFGDeDCiaicSLrm4eK54WeicE4DBw47KQW1oWnyk4vtSbZRiaPibiczOg/0?wx_fmt=jpeg" }
+        //array(2) { ["media_id"]=> string(43) "w5M3zzjIh1Lm5t5uzW462uNhfU8O-NDYAsnpMdtyC7U" ["url"]=> string(141) "http://mmbiz.qpic.cn/mmbiz_jpg/RvvoNibO8rPiaoLic6vjFCSIInsttiauBjB0QbUOFGDeDCiaicSLrm4eK54WeicE4DBw47KQW1oWnyk4vtSbZRiaPibiczOg/0?wx_fmt=jpeg" }
+        //array(2) { ["media_id"]=> string(43) "w5M3zzjIh1Lm5t5uzW462hsIqnrFFbCr4EEniTHIYzo" ["url"]=> string(141) "http://mmbiz.qpic.cn/mmbiz_jpg/RvvoNibO8rPiaoLic6vjFCSIInsttiauBjB0QbUOFGDeDCiaicSLrm4eK54WeicE4DBw47KQW1oWnyk4vtSbZRiaPibiczOg/0?wx_fmt=jpeg" }
+    }
+}
+    
+//上传图文消息内的图片获取URL 
+if($_GET['type'] == 2){
+    $media = array(
+        'filepath' => '/assets/img/1234.png',
+        'filename' => '1234.JPEG',
+        'content-type' => 'image/png',
+        'filelength' => filesize('../assets/img/1234.png')
+    );
+    $r = $news->uploadimg($media);
+    if(empty($r) || $r["errcode"] > 0){
+        echo "错误代码：".$r["errcode"]." ".$r["errmsg"];
+    }else{
+        var_dump($r);
+        //array(1) { ["url"]=> string(127) "http://mmbiz.qpic.cn/mmbiz_png/RvvoNibO8rPiaoLic6vjFCSIInsttiauBjB0DRzsdiaiahHQCdiauUplA0vEtQswKfPPk1iaaUNBf3W8P7fsgworOHEeuw/0" }
+        //array(1) { ["url"]=> string(127) "http://mmbiz.qpic.cn/mmbiz_png/RvvoNibO8rPiaoLic6vjFCSIInsttiauBjB0DRzsdiaiahHQCdiauUplA0vEtQswKfPPk1iaaUNBf3W8P7fsgworOHEeuw/0" }
+        
+    }
+}  
+
+//上传图文消息 
+if($_GET['type'] == 3){
+    $url = "http://mmbiz.qpic.cn/mmbiz_png/RvvoNibO8rPiaoLic6vjFCSIInsttiauBjB0DRzsdiaiahHQCdiauUplA0vEtQswKfPPk1iaaUNBf3W8P7fsgworOHEeuw/0";
+    $media = array(
+        'title' => '马云入股联通，逼迫三大运营商加快降低漫游费，解决不合理收费还要多久？',
+        'thumb_media_id' => 'w5M3zzjIh1Lm5t5uzW462h27cjE23s2vh7unmxR5g1A',
+        'author' => '作者',
+        'digest' => '现在社会，几乎人人都有手机，而电话卡是人们必不可少的东西，那么我们都遇到过这种情况，那就是国际漫游，收费特别贵。而从上年就开始说要降低的漫游费，到今年还没有动静。',
+        
+        'show_cover_pic' => 1,
+        'author' => '作者',
+        'content' => '<div class="article-content"> <p>现在社会，几乎人人都有手机，而电话卡是人们必不可少的东西，那么我们都遇到过这种情况，那就是国际漫游，收费特别贵。而从上年就开始说要降低的漫游费，到今年还没有动静。</p><div class="img-container"><img width="100%" src="'.$url.'"></div><p>近日马云和马化腾入驻联通混改，这是民营加入国企混改的首例，得到了众多民众的支持，也是这次混改，加快了三大运营商降低漫游费的步伐。</p><p>7月25日，国新办举行2017年上半年工业通信业发展情况发布会，会上，工信部新闻发言人、总工程师张峰透露，今年是我国部署提速降费的第三年，截至上半年，全国20M以上宽带用户比例达到86%、4G用户占比达到65%。而对于颇受消费者关注的取消漫游费进展，张峰表示，三大运营商正积极推进系统改造等相关工作，力争在10月前实现目标。</p><div class="img-container"><img width="100%" src="'.$url.'"></div><p>“今年5月1日起，三家基础电信商均大幅下调了主要方向的国际长途电话资费，降至0.49-0.99元/分钟，平均降幅最高达90%”，张峰介绍，同样被下调的还有互联网专线接入资费，降幅超过15%，今后相关部门将进一步加大国际结算谈判力度，逐步下调更多方向的国际长途电话资费，“关于取消手机国内长途漫游费工作，工信部按照确保工作落实到位、力争提前实施的原则，持续推动工作进度，三家企业也在全力以赴地推进系统改造等相关工作，力争提前实现目标”。</p><p>　　今年我国政府工作报告中明确提出，年内网络提速降费要迈出更大步伐，全部取消手机国内长途和漫游费，一石激起千层浪。中国移动、中国电信、中国联通三大运营商旋即表态称，将于今年10月1日全面取消手机国内长途和漫游费。</p><div class="img-container"><img width="100%" src="'.$url.'"></div><p>据了解，手机漫游费是2G时代的产物，诞生于1994年原邮电部发布的《关于加强移动电话机管理和调整移动电话资费标准的通知》，其中要求移动电话需收取每分钟0.6元的自动漫游费。到了2008年，工信部正式规定主叫每分钟0.6元为国内漫游通话费上限。</p><div class="img-container"><img width="100%" src="'.$url.'"></div><p>资深产业经济观察家梁振鹏表示，这一举措推进已完成大半，目前联通、移动、电信三大运营商都已逐步取消漫游费，少数资费较便宜的套餐仍在使用，彻底消除国内漫游费的主要难点在于，作为垄断企业的三大运营商面对漫游费带来的利益，在思想上认识到提速降费的重要性。</p><div class="img-container"><img width="100%" src="'.$url.'"></div><p>请点击输入图片描</p><p>在中国通信一直被三大运营商所垄断，这是可怕的，民众从来没有说话的权利，而如今社会发展迅速，这种垄断将会被打破，看似坚不可摧的地位，已经变得摇摇欲坠，相信不久的将来一定可以把这些不合理的收费全部解决掉，这需要广大民众的支持。</p> </div>',
+        'content_source_url' => 'http://baijiahao.baidu.com/s?id=1573951284440765',
+        'need_open_comment' => 1,
+        'only_fans_can_comment' => 0
+    );
+    $json = json_encode(array('articles' => array($media)));
+    $r = $news->addNews(array('body' => $json));
+    //$r = $news->addNews(array('articles' => array($media)));
+    if(empty($r) || $r["errcode"] > 0){
+        echo "错误代码：".$r["errcode"]." ".$r["errmsg"];
+    }else{
+        var_dump($r);
+        
+    }
+}
+    
+//获取素材 
+if($_GET['type'] == 4){
+    //$media = '{ "type":news, "offset":1, "count":20 }';
+    if($_GET['types'] == 1){
+    $media = array(
+        "type" => 'image',
+        "offset" => 1, 
+        "count" => 20 
+    );
+    $r = $news->batchget_material($media); 
+    }
+    if($_GET['types'] == 2){
+    $media =$media = '{ "type":image, "offset":1, "count":20 }';
+    $r = $news->batchget_material($media); 
+    }
+    
+    if($_GET['types'] == 3){
+    $media = array(
+        "type" => 'image',
+        "offset" => 1, 
+        "count" => 20 
+    );
+    $r = $news->batchget_material(array('body' => $media)); 
+    }if($_GET['types'] == 4){
+    $media = array(
+        "type" => 'image',
+        "offset" => 1, 
+        "count" => 20 
+    );
+    $r = $news->batchget_material(array('body' => json_encode($media))); 
+    }
+    if(empty($r) || $r["errcode"] > 0){
+        echo "错误代码：".$r["errcode"]." ".$r["errmsg"];
+    }else{
+        var_dump($r);
+        
+    }
+}

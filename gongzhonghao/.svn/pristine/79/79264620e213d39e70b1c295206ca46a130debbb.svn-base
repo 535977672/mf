@@ -1,0 +1,30 @@
+<?php
+
+/* 
+ * 图文消息留言管理
+ */
+include_once 'News.class';
+define("MAIN_URL", "http://535977672.applinzi.com");
+$auth = array(
+    'appid' => 'wxdd42a6cf5050a453',
+    'appsecret' => 'af6a594dda07a6caeff9dc236c218b46'
+);
+$news = new News($auth['appid'], $auth['appsecret']);
+
+//图片永久素材上传
+if($_GET['type'] == 1){
+    $filename = MAIN_URL.'/assets/img/1232.JPEG';
+    $media = array(
+        'filename' => $filename,
+        'content-type' => 'image/jpeg',
+        'filelength' => filesize($filename)
+    );
+    $r = $news->addMaterial($media);
+    if(empty($r) || $r["errcode"] > 0){
+        echo "错误代码：".$r["errcode"]." ".$r["errmsg"];
+    }else{
+        var_dump($r);
+        echo "成功";
+    }
+}  
+

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <head> 
+        <meta charset="utf-8"> 
+        <title>菜鸟教程(runoob.com)</title> 
+        <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    </head>
+<body>
+ 
+    <div id="container" style="width:300px">
+
+        <div id="header" style="background-color:#FFA500;">
+            <h1 style="margin-bottom:0;">主要的网页标题</h1>
+        </div>
+
+        <div id="menu" style="background-color:#FFD700;height:100px;width:100px;float:left;" onclick="window.open('myapp2://goods:8888/goodsDetail2?goodsId=10011002');">
+                <b>菜单</b><br>HTML<br>CSS<br>JavaScript
+        </div>
+
+        <div id="content" style="background-color:#EEEEEE;height:200px;width:200px;float:left;">内容在这里</div>
+
+        <div id="footer" style="background-color:#FFA500;clear:both;text-align:center;" onclick="window.open('myapp2://goods:8888/goodsDetail3?goodsId=10011002');">版权 © runoob.com</div>
+
+    </div>
+ 
+</body>
+<script src="canvas_nest.js"></script>
+<script type="text/javascript">
+    $(function(){
+        $("#content").click(function () {
+            //window.open("myapp2://goods:8888/goodsDetail2?goodsId=10011002");
+
+        var appstore, ua = navigator.userAgent;
+        if(ua.match(/Android/i)){ 
+            appstore = 'myapp2://goods:8888/goodsDetail2?goodsId=10011002';
+        }
+        if(ua.match(/iphone|ipod|ipad/)){
+            appstore = ""; 
+        }   
+        var clickedAt = +new Date;
+        window.open(appstore);
+        setTimeout(function(){  
+              if (+new Date - clickedAt <500){  
+                  window.open('http://192.168.1.111/test/newhtml2.html');
+              }  
+        }, 200);
+
+
+
+
+        });
+    });
+</script>
+</html>

@@ -1,0 +1,12 @@
+.smallImgs ul{padding: 0px; margin: 0px;}
+.smallImgs{clear: both; margin-top: 10px;}
+.smallImgs>div{display: inline-block;}
+.smallImgs #imageMenu{width: 400px; overflow: hidden; white-space:nowrap;}
+.smallImgs ul li{display: inline-block; margin: 0px; padding: 0px; overflow: hidden; border: 2px solid #FFFFFF; width: 59px; height: 62px; opacity: 1; cursor: pointer;}
+.smallImgs ul li:hover,.smallImgSelected{border: 2px solid #d55a23 !important; opacity: 1 !important;}
+.smallImgs ul li img{height: 62px;width: 59px;}
+.bigImg{position: relative;width: 400px; height: 400px; clear: both;}
+.bigImg #midimg{float: left; width: inherit; height: inherit; cursor: move;}
+.bigImg #winSelector{position: absolute; display:none;width:200px;height:200px;background: url(../img/bigview.png) repeat; z-index: 9999;cursor:move;}
+#bigView{display:none; float: left; width: 400px; height: 400px; overflow: hidden; position: absolute; left: 405px; top: 0px;z-index: 9999;}
+#bigView #bigViewImg{width: 800px; height: 800px; position: absolute;}

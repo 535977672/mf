@@ -1,0 +1,46 @@
+<?php
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ * Description of http
+ *
+ * @author Administrator
+ */
+class Http {
+    /**
+     * 
+     */
+    public static function curl_request($url, $data = null, $post = true, $timeout = 1)
+    {
+        //var_dump($data);
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        if(stripos($url,"https://")!== FALSE){
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);// https请求 不验证证书和hosts
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+            curl_setopt($curl, CURLOPT_SSLVERSION, 1);
+        }
+        curl_setopt($curl, CURLOPT_HEADER, 0); // 不要http header 加快效率
+        if (!empty($data) && $post){
+            curl_setopt($curl, CURLOPT_POST, 1);
+            if(is_array($data)) $data = http_build_query($data);//foo=bar&baz=boom&cow=milk&php=hypertext+processor
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data);//如果$data是字符串，则Content-Type是application/x-www-form-urlencoded。如果$data是k=>v的数组，则Content-Type是multipart/form-data
+        }
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);// 要求结果为字符串且输出到屏幕上
+        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+        
+        $output = curl_exec($curl);
+        $errno = curl_errno($curl);
+        $error = curl_error($curl);
+        curl_close($curl);
+        if($errno == 0){
+            return json_decode($output, true);
+        }
+        return array('errcode' => $errno,'errmsg' => $error);
+    }
+}
